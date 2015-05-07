@@ -1,4 +1,4 @@
-ID Obfuscation/Hashing Transformer for Go [![GoDoc](http://godoc.org/github.com/pjebs/optimus-go?status.svg)](http://godoc.org/github.com/pjebs/optimus-go)
+ID Obfuscation/Hashing Transformer for Go [![GoDoc](http://godoc.org/github.com/pjebs/optimus-go?status.svg)](http://godoc.org/github.com/pjebs/optimus-go) [![Coverage Status](https://coveralls.io/repos/pjebs/optimus-go/badge.svg)](https://coveralls.io/r/pjebs/optimus-go)[![Travis CI](https://travis-ci.org/pjebs/optimus-go.svg)]
 ===============
 
 There are many times when you want to generate obfuscated ids. This package utilizes Knuth's Hashing Algorithm to transform your internal ids into another number to *hide* it from the general public.

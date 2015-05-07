@@ -13,6 +13,9 @@ import (
 	"unsafe"
 )
 
+// Obtains a prime number from the internet, calculates the mod inverse of it and
+// calculates a random number. It then checks if the process worked BUT does not
+// test if the number obtained is actually Prime.
 func TestGenerateSeed(t *testing.T) {
 
 	for i := 0; i < 3; i++ { //How many times we want to run GenerateSeed()
@@ -69,6 +72,7 @@ func TestGenerateSeed(t *testing.T) {
 	}
 }
 
+// Tests if the encoding process correctly decodes the id back to the original.
 func TestEncoding(t *testing.T) {
 	for i := 0; i < 3; i++ { //How many times we want to run GenerateSeed()
 		o, _, _ := GenerateSeed()

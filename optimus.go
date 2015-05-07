@@ -87,10 +87,10 @@ func ModInverse(n uint64) uint64 {
 // The first 50 million prime numbers are distributed evenly in 50 files.
 // This Function is Time, Memory and CPU intensive. Run it once to generate the
 // required seeds.
-// WARNING: Potentially Unsecure. Double check that the prime number returned
+// WARNING: Potentially Insecure. Double check that the prime number returned
 // is actually prime number using an independent source.
 // The largest Prime has 9 digits. The smallest has 1 digit.
-// The final return value is the zipfile that was used to obtain the prime number
+// The final return value is the website zip file identifier that was used to obtain the prime number
 func GenerateSeed() (*Optimus, error, uint8) {
 	log.Printf("WARNING: Optimus generates a random number via this site: http://primes.utm.edu/lists/small/millions/. This is potentially unsecure!")
 

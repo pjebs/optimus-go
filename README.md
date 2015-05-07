@@ -44,8 +44,7 @@ package hello
 
 import (
 	"fmt"
-	"github.com/pjebs/optimus"
-	"net/http"
+	"github.com/pjebs/optimus-go"
 )
 
 o, _, _ := optimus.New(1580030173, 59260789, 1163945558) //Prime Number: 1580030173, Mod Inverse: 59260789, Pure Random Number: 1163945558

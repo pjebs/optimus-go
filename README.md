@@ -28,7 +28,7 @@ Usage
 * Calculate the Mod Inverse of the Prime number such that `(PRIME * INVERSE) & MAXID == 1`
 * Generate a Pure Random Integer less than `2147483647` (MAXID).
 
-You can use the built-in `GenerateSeed()` function to generate all 3 required parameters if you want. This is not recommended though because it is reliant on the prime numbers listed on the website: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/). This adds a point of point of insecurity.
+You can use the built-in `GenerateSeed()` function to generate all 3 required parameters if you want. This is not recommended though because it is reliant on the prime numbers listed on the website: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/). This adds a point of insecurity.
 
 If you do use the `GenerateSeed()` function, make sure that you verify:
 * That website has not been hijacked
@@ -75,14 +75,14 @@ type Optimus struct {
 func New(prime uint64, modInverse uint64, random uint64) Optimus
 ```
 
-Returns an Optimus struct which can be used to encode and decode integers. Usually used for obfuscating internal ids such as database table rows.
+Returns an Optimus struct which can be used to encode and decode integers. Usually used for obfuscating internal ids such as database table rows. Panics if prime is not valid.
 
 
 ```go
 func NewCalculated(prime uint64, random uint64) Optimus
 ```
 
-Returns an Optimus struct which can be used to encode and decode integers. Usually used for obfuscating internal ids such as database table rows. This method calculates the modInverse computationally.
+Returns an Optimus struct which can be used to encode and decode integers. Usually used for obfuscating internal ids such as database table rows. This method calculates the modInverse computationally. Panics if prime is not valid.
 
 ```go
 func (this Optimus) Encode(n uint64) uint64 
@@ -121,7 +121,7 @@ func ModInverse(n uint64) uint64
 ```
 
 Calculates the Modular Inverse of a given Prime number such that `(PRIME * MODULAR_INVERSE) & (MAX_INT_VALUE) = 1`
-If n is not a Prime number, the return value is indeterminate.
+Panics if n is not a valid prime number.
 See: [http://en.wikipedia.org/wiki/Modular_multiplicative_inverse](http://en.wikipedia.org/wiki/Modular_multiplicative_inverse)
 
 ```go

@@ -9,13 +9,15 @@ import (
 	"github.com/pjebs/jsonerror"
 	"io/ioutil"
 	"log"
+	"math"
 	"math/big"
 	"strconv"
 	"strings"
 )
 
 const (
-	MAX_INT = 2147483647
+	MAX_INT      = 2147483647
+	MILLER_RABIN = 20 //https://golang.org/pkg/math/big/#Int.ProbablyPrime
 )
 
 type Optimus struct {
@@ -26,16 +28,31 @@ type Optimus struct {
 
 // Returns an Optimus struct which can be used to encode and decode
 // integers. Usually used for obfuscating internal ids such as database
-// table rows.
+// table rows. Panics if prime is not valid.
 func New(prime uint64, modInverse uint64, random uint64) Optimus {
-	return Optimus{prime, modInverse, random}
+
+	p := big.NewInt(int64(prime))
+	if p.ProbablyPrime(MILLER_RABIN) {
+		return Optimus{prime, modInverse, random}
+	} else {
+		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
+		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("%d Miller-Rabin tests done. Accuracy: %f", MILLER_RABIN, accuracy)))
+	}
+
 }
 
 // Returns an Optimus struct which can be used to encode and decode
 // integers. Usually used for obfuscating internal ids such as database
 // table rows. This method calculates the modInverse computationally.
+// Panics if prime is not valid.
 func NewCalculated(prime uint64, random uint64) Optimus {
-	return Optimus{prime, ModInverse(prime), random}
+	p := big.NewInt(int64(prime))
+	if p.ProbablyPrime(MILLER_RABIN) {
+		return Optimus{prime, ModInverse(prime), random}
+	} else {
+		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
+		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("%d Miller-Rabin tests done. Accuracy: %f", MILLER_RABIN, accuracy)))
+	}
 }
 
 // Encodes n using Knuth's Hashing Algorithm.
@@ -71,9 +88,16 @@ func (this Optimus) Random() uint64 {
 
 // Calculates the Modular Inverse of a given Prime number such that
 // (PRIME * MODULAR_INVERSE) & (MAX_INT_VALUE) = 1
-// If n is not a Prime number, the return value is indeterminate.
+// Panics if n is not a valid prime number.
 // See: http://en.wikipedia.org/wiki/Modular_multiplicative_inverse
 func ModInverse(n uint64) uint64 {
+
+	p := big.NewInt(int64(n))
+	if !p.ProbablyPrime(MILLER_RABIN) {
+		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
+		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("%d Miller-Rabin tests done. Accuracy: %f", MILLER_RABIN, accuracy)))
+	}
+
 	var i big.Int
 
 	prime := big.NewInt(int64(n))
@@ -92,7 +116,7 @@ func ModInverse(n uint64) uint64 {
 // The largest Prime has 9 digits. The smallest has 1 digit.
 // The final return value is the website zip file identifier that was used to obtain the prime number
 func GenerateSeed() (*Optimus, error, uint8) {
-	log.Printf("WARNING: Optimus generates a random number via this site: http://primes.utm.edu/lists/small/millions/. This is potentially unsecure!")
+	log.Printf("WARNING: Optimus generates a random number via this site: http://primes.utm.edu/lists/small/millions/. This is potentially insecure!")
 
 	baseURL := "http://primes.utm.edu/lists/small/millions/primes%d.zip"
 

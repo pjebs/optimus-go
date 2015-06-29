@@ -6,6 +6,6 @@ import (
 	"net/http"
 )
 
-func client() *http.Client {
+func client(r *http.Request) *http.Client {
 	return &http.Client{}
 }

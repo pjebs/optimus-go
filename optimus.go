@@ -11,6 +11,7 @@ import (
 	"log"
 	"math"
 	"math/big"
+	"net/http"
 	"strconv"
 	"strings"
 )
@@ -95,7 +96,7 @@ func ModInverse(n uint64) uint64 {
 	p := big.NewInt(int64(n))
 	if !p.ProbablyPrime(MILLER_RABIN) {
 		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
-		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("%d Miller-Rabin tests done. Accuracy: %f", MILLER_RABIN, accuracy)))
+		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("n=%d. %d Miller-Rabin tests done. Accuracy: %f", n, MILLER_RABIN, accuracy)))
 	}
 
 	var i big.Int
@@ -109,14 +110,15 @@ func ModInverse(n uint64) uint64 {
 // Generates a valid Optimus struct using a randomly selected prime
 // number from this site: http://primes.utm.edu/lists/small/millions/
 // The first 50 million prime numbers are distributed evenly in 50 files.
+// Parameter req should be nil if not using Google App Engine.
 // This Function is Time, Memory and CPU intensive. Run it once to generate the
 // required seeds.
 // WARNING: Potentially Insecure. Double check that the prime number returned
 // is actually prime number using an independent source.
 // The largest Prime has 9 digits. The smallest has 1 digit.
 // The final return value is the website zip file identifier that was used to obtain the prime number
-func GenerateSeed() (*Optimus, error, uint8) {
-	log.Printf("WARNING: Optimus generates a random number via this site: http://primes.utm.edu/lists/small/millions/. This is potentially insecure!")
+func GenerateSeed(req *http.Request) (*Optimus, error, uint8) {
+	log.Printf("\x1b[31mWARNING: Optimus generates a random number via this site: http://primes.utm.edu/lists/small/millions/. This is potentially insecure!\x1b[39;49m")
 
 	baseURL := "http://primes.utm.edu/lists/small/millions/primes%d.zip"
 
@@ -127,12 +129,13 @@ func GenerateSeed() (*Optimus, error, uint8) {
 
 	//Download zip file
 	finalUrl := fmt.Sprintf(baseURL, i_n)
+	log.Printf("Using file: %s", finalUrl)
 
-	resp, err := client().Get(finalUrl)
-	defer resp.Body.Close()
+	resp, err := client(req).Get(finalUrl)
 	if err != nil {
 		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(i_n)
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -147,10 +150,10 @@ func GenerateSeed() (*Optimus, error, uint8) {
 	zippedFile := r.File[0]
 
 	src, err := zippedFile.Open() //src contains ReaderCloser
-	defer src.Close()
 	if err != nil {
 		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(i_n)
 	}
+	defer src.Close()
 
 	//Create a Byte Slice
 	buf := new(bytes.Buffer)

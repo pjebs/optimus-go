@@ -3,12 +3,12 @@
 package optimus
 
 import (
+	"appengine"
+	"appengine/urlfetch"
 	"net/http"
 )
 
-func client() *http.Client {
-
-	transport := http.Transport{}
-
-	return &http.Client{Transport: &transport}
+func client(r *http.Request) *http.Client {
+	c := appengine.NewContext(r)
+	return urlfetch.Client(c)
 }

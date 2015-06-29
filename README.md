@@ -8,6 +8,7 @@ An example may be your database table. You may have a primary key that points to
 Optimus encodes your internal id to a number that is safe to expose. Finally it can decode that number back so you know which internal id it refers to.
 
 Full Unit Tests are provided.
+The package is Google App Engine compatible.
 
 
 Installation
@@ -47,9 +48,9 @@ import (
 	"github.com/pjebs/optimus-go"
 )
 
-o, _, _ := optimus.New(1580030173, 59260789, 1163945558) //Prime Number: 1580030173, Mod Inverse: 59260789, Pure Random Number: 1163945558
+o := optimus.New(1580030173, 59260789, 1163945558) //Prime Number: 1580030173, Mod Inverse: 59260789, Pure Random Number: 1163945558
 
-new_id := o.Encode(15) //internal id of 15 being transformed
+new_id := o.Encode(15) //internal id of 15 being transformed to 1103647397
 
 orig_id := o.Decode(1103647397) //Returns 15 back
 
@@ -125,7 +126,7 @@ Panics if n is not a valid prime number.
 See: [http://en.wikipedia.org/wiki/Modular_multiplicative_inverse](http://en.wikipedia.org/wiki/Modular_multiplicative_inverse)
 
 ```go
-func GenerateSeed() (*Optimus, error, uint8)
+func GenerateSeed(req *http.Request) (*Optimus, error, uint8)
 ```
 
 Generates a valid Optimus struct using a randomly selected prime number from this site: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/)
@@ -134,6 +135,7 @@ This Function is Time, Memory and CPU intensive. Run it once to generate the req
 **WARNING:** Potentially Insecure. Double check that the prime number returned is actually prime number using an independent source.
 The largest Prime has 9 digits. The smallest has 1 digit.
 The final return value is the website zip file identifier that was used to obtain the prime number
+**NB:** Parameter `req` should be nil if not using Google App Engine.
 
 Alternatives
 ------------

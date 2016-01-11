@@ -6,21 +6,12 @@ import (
 	"crypto/rand"
 	"math/big"
 	"testing"
+	"time"
 )
-
-// Obtains a prime number from the internet, calculates the mod inverse of it and
-// calculates a random number. It then checks if the process worked BUT does not
-// test if the number obtained is actually Prime.
-func TestGenerateSeed(t *testing.T) {
-	for i := 0; i < 3; i++ { //How many times we want to run GenerateSeed()
-		o := GenerateSeed()
-		t.Logf("Generated Seed - Prime: %d ModInverse: %d Random: %d", o.Prime(), o.ModInverse(), o.Random())
-	}
-}
 
 // Tests if the encoding process correctly decodes the id back to the original.
 func TestEncoding(t *testing.T) {
-	for i := 0; i < 15; i++ { //How many times we want to run GenerateSeed()
+	for i := 0; i < 3; i++ { //How many times we want to run GenerateSeed()
 		o := GenerateSeed()
 
 		c := 10
@@ -58,6 +49,39 @@ func TestEncoding(t *testing.T) {
 				// log.Printf("%d: %d -> %d - PASSED", orig, hashed, unhashed)
 			}
 		}
-
 	}
+}
+
+func TestPerformance(t *testing.T) {
+	o := GenerateSeed()
+
+	bm := func(num uint64) {
+		encoded := make([]uint64, num)
+
+		start := time.Now()
+		for i, _ := range encoded {
+			encoded[i] = o.Encode(uint64(i))
+		}
+		elapsed := time.Since(start)
+		t.Logf("Encoded %d numers in %s", num, elapsed)
+
+		start = time.Now()
+		for i, _ := range encoded {
+			encoded[i] = o.Decode(encoded[i])
+		}
+		elapsed = time.Since(start)
+		t.Logf("Decoded %d numers in %s", num, elapsed)
+	}
+
+	// 2^10 uint64 = 8 KiB
+	bm(1024)
+
+	// 2^13 uint64 = 64 KiB
+	bm(8192)
+
+	// 2^16 uint64 = 512 KiB
+	bm(65536)
+
+	// 2^19 uint64 = 4 MiB
+	bm(524288)
 }

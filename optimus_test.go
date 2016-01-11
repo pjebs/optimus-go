@@ -3,91 +3,16 @@
 package optimus
 
 import (
-	"archive/zip"
-	"bytes"
 	"crypto/rand"
-	"fmt"
-	"io/ioutil"
-	// "log"
 	"math/big"
-	"strings"
 	"testing"
-	"unsafe"
+	"time"
 )
-
-// Obtains a prime number from the internet, calculates the mod inverse of it and
-// calculates a random number. It then checks if the process worked BUT does not
-// test if the number obtained is actually Prime.
-func TestGenerateSeed(t *testing.T) {
-
-	for i := 0; i < 3; i++ { //How many times we want to run GenerateSeed()
-		o, err, f := GenerateSeed(nil)
-		if err != nil {
-			t.Errorf("Try %d - Failed", i)
-		}
-
-		//Check if prime is contained in zipped text file
-		baseURL := "http://primes.utm.edu/lists/small/millions/primes%d.zip"
-		finalUrl := fmt.Sprintf(baseURL, f)
-
-		resp, err := client(nil).Get(finalUrl)
-		if err != nil {
-			t.Errorf("Try %d - Failed", i)
-			continue
-		}
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			t.Errorf("Try %d - Failed", i)
-			continue
-		}
-
-		r, err := zip.NewReader(bytes.NewReader(body), resp.ContentLength)
-		if err != nil {
-			t.Errorf("Try %d - Failed", i)
-			continue
-		}
-
-		zippedFile := r.File[0]
-
-		src, err := zippedFile.Open() //src contains ReaderCloser
-		if err != nil {
-			t.Errorf("Try %d - Failed", i)
-			continue
-		}
-		// defer src.Close()
-
-		//Create a Byte Slice
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(src)
-		b := buf.Bytes()
-		stringContents := *(*string)(unsafe.Pointer(&b))
-
-		subString := fmt.Sprintf(" %d ", o.Prime())
-		if !strings.Contains(stringContents, subString) {
-			src.Close()
-			t.Errorf("Try %d - Failed - Obtained Prime:%d is not a Prime", i, o.Prime())
-			continue
-		}
-
-		src.Close()
-
-		//Check if ModInverse is correct
-
-		// if o.Prime() != ModInverse(o.ModInverse()) {
-		// 	src.Close()
-		// 	t.Errorf("Try %d - Failed - ModInverse(%d) of %d is not correct", i, o.ModInverse, o.Prime)
-		// 	continue
-		// }
-
-	}
-}
 
 // Tests if the encoding process correctly decodes the id back to the original.
 func TestEncoding(t *testing.T) {
-	for i := 0; i < 15; i++ { //How many times we want to run GenerateSeed()
-		o, _, _ := GenerateSeed(nil)
+	for i := 0; i < 3; i++ { //How many times we want to run GenerateSeed()
+		o := GenerateSeed()
 
 		c := 10
 		h := 100 //How many random numbers to select in between 0-c and (MAX_INT-c) - MAX-INT
@@ -124,6 +49,39 @@ func TestEncoding(t *testing.T) {
 				// log.Printf("%d: %d -> %d - PASSED", orig, hashed, unhashed)
 			}
 		}
-
 	}
+}
+
+func TestPerformance(t *testing.T) {
+	o := GenerateSeed()
+
+	bm := func(num uint64) {
+		encoded := make([]uint64, num)
+
+		start := time.Now()
+		for i, _ := range encoded {
+			encoded[i] = o.Encode(uint64(i))
+		}
+		elapsed := time.Since(start)
+		t.Logf("Encoded %d numers in %s", num, elapsed)
+
+		start = time.Now()
+		for i, _ := range encoded {
+			encoded[i] = o.Decode(encoded[i])
+		}
+		elapsed = time.Since(start)
+		t.Logf("Decoded %d numers in %s", num, elapsed)
+	}
+
+	// 2^10 uint64 = 8 KiB
+	bm(1024)
+
+	// 2^13 uint64 = 64 KiB
+	bm(8192)
+
+	// 2^16 uint64 = 512 KiB
+	bm(65536)
+
+	// 2^19 uint64 = 4 MiB
+	bm(524288)
 }

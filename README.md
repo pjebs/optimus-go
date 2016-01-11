@@ -29,12 +29,7 @@ Usage
 * Calculate the Mod Inverse of the Prime number such that `(PRIME * INVERSE) & MAXID == 1`
 * Generate a Pure Random Integer less than `2147483647` (MAXID).
 
-You can use the built-in `GenerateSeed()` function to generate all 3 required parameters if you want. This is not recommended though because it is reliant on the prime numbers listed on the website: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/). This adds a point of insecurity.
-
-If you do use the `GenerateSeed()` function, make sure that you verify:
-* That website has not been hijacked
-* The 50 million prime numbers listed on the site have not been modified to all point to the same number (i.e. they are all different)
-* You independently verify that the Prime Number generated is in fact a **PRIME** number!
+You can use the built-in `GenerateSeed()` function to generate all 3 required parameters if you want.
 
 
 ### Step 2
@@ -126,16 +121,11 @@ Panics if n is not a valid prime number.
 See: [http://en.wikipedia.org/wiki/Modular_multiplicative_inverse](http://en.wikipedia.org/wiki/Modular_multiplicative_inverse)
 
 ```go
-func GenerateSeed(req *http.Request) (*Optimus, error, uint8)
+func GenerateSeed() (*Optimus)
 ```
 
-Generates a valid Optimus struct using a randomly selected prime number from this site: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/)
-The first 50 million prime numbers are distributed evenly in 50 files.
-This Function is Time, Memory and CPU intensive. Run it once to generate the required seeds.
-**WARNING:** Potentially Insecure. Double check that the prime number returned is actually prime number using an independent source.
-The largest Prime has 9 digits. The smallest has 1 digit.
-The final return value is the website zip file identifier that was used to obtain the prime number
-**NB:** Parameter `req` should be nil if not using Google App Engine.
+Generates a valid Optimus struct by calculating a random prime number
+This function takes a few seconds and is resource intensive
 
 Alternatives
 ------------

@@ -27,9 +27,9 @@ func TestGenerateSeed(t *testing.T) {
 
 		//Check if prime is contained in zipped text file
 		baseURL := "http://primes.utm.edu/lists/small/millions/primes%d.zip"
-		finalUrl := fmt.Sprintf(baseURL, f)
+		finalURL := fmt.Sprintf(baseURL, f)
 
-		resp, err := client(nil).Get(finalUrl)
+		resp, err := client(nil).Get(finalURL)
 		if err != nil {
 			t.Errorf("Try %d - Failed", i)
 			continue

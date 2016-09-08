@@ -8,40 +8,31 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/pjebs/jsonerror"
-	optimus "github.com/pjebs/optimus-go"
+	"github.com/pjebs/optimus-go"
 )
 
-// Returns an Optimus struct which can be used to encode and decode
+// NewCalculated returns an Optimus struct which can be used to encode and decode
 // integers. Usually used for obfuscating internal ids such as database
 // table rows. This method calculates the modInverse computationally.
 // Panics if prime is not valid.
 func NewCalculated(prime uint64, random uint64) optimus.Optimus {
-	p := big.NewInt(int64(prime))
-	if p.ProbablyPrime(optimus.MillerRabinRounds) {
-		return optimus.New(prime, ModInverse(prime), random)
-	} else {
-		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(optimus.MillerRabinRounds))
-		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("%d optimus.Miller-Rabin tests done. Accuracy: %f", optimus.MillerRabinRounds, accuracy)))
-	}
+	optimus.AssertPrime(prime)
+
+	return optimus.New(prime, ModInverse(prime), random)
 }
 
-// Calculates the Modular Inverse of a given Prime number such that
+// ModInverse calculates the Modular Inverse of a given Prime number such that
 // (PRIME * MODULAR_INVERSE) & (optimus.MaxInt32_VALUE) = 1
 // Panics if n is not a valid prime number.
 // See: http://en.wikipedia.org/wiki/Modular_multiplicative_inverse
 func ModInverse(n uint64) uint64 {
-	p := big.NewInt(int64(n))
-	if !p.ProbablyPrime(optimus.MillerRabinRounds) {
-		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(optimus.MillerRabinRounds))
-		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("n=%d. %d optimus.Miller-Rabin tests done. Accuracy: %f", n, optimus.MillerRabinRounds, accuracy)))
-	}
+	optimus.AssertPrime(n)
 
 	var i big.Int
 
@@ -51,7 +42,7 @@ func ModInverse(n uint64) uint64 {
 	return i.ModInverse(prime, max).Uint64()
 }
 
-// Generates a valid Optimus struct using a randomly selected prime
+// GenerateSeed generates a valid Optimus struct using a randomly selected prime
 // number from this site: http://primes.utm.edu/lists/small/millions/
 // The first 50 million prime numbers are distributed evenly in 50 files.
 // Parameter req should be nil if not using Google App Engine.
@@ -67,35 +58,35 @@ func GenerateSeed(req *http.Request) (*optimus.Optimus, error, uint8) {
 	baseURL := "http://primes.utm.edu/lists/small/millions/primes%d.zip"
 
 	//Generate Random number between 1-50
-	b_49 := *big.NewInt(49)
-	n, _ := rand.Int(rand.Reader, &b_49)
-	i_n := n.Uint64() + 1
+	b49 := *big.NewInt(49)
+	n, _ := rand.Int(rand.Reader, &b49)
+	iN := n.Uint64() + 1
 
 	//Download zip file
-	finalUrl := fmt.Sprintf(baseURL, i_n)
-	log.Printf("Using file: %s", finalUrl)
+	finalURL := fmt.Sprintf(baseURL, iN)
+	log.Printf("Using file: %s", finalURL)
 
-	resp, err := client(req).Get(finalUrl)
+	resp, err := client(req).Get(finalURL)
 	if err != nil {
-		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(i_n)
+		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(iN)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(i_n)
+		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(iN)
 	}
 
 	r, err := zip.NewReader(bytes.NewReader(body), resp.ContentLength)
 	if err != nil {
-		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(i_n)
+		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(iN)
 	}
 
 	zippedFile := r.File[0]
 
 	src, err := zippedFile.Open() //src contains ReaderCloser
 	if err != nil {
-		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(i_n)
+		return nil, jsonerror.New(1, "Could not generate seed", err.Error()), uint8(iN)
 	}
 	defer src.Close()
 
@@ -108,8 +99,8 @@ func GenerateSeed(req *http.Request) (*optimus.Optimus, error, uint8) {
 	start := 67 // Each zip file has an introductory header which is not relevant until the 67th character
 	end := noOfBytes
 
-	b_end := *big.NewInt(int64(end) - int64(start))
-	n, _ = rand.Int(rand.Reader, &b_end)
+	bEnd := *big.NewInt(int64(end) - int64(start))
+	n, _ = rand.Int(rand.Reader, &bEnd)
 	randomPosition := n.Uint64() + uint64(start)
 
 	min := randomPosition - 9
@@ -182,5 +173,5 @@ func GenerateSeed(req *http.Request) (*optimus.Optimus, error, uint8) {
 	randomNumber := rand.Uint64() + 1
 
 	o := optimus.New(selectedPrime, modInverse, randomNumber)
-	return &o, nil, uint8(i_n)
+	return &o, nil, uint8(iN)
 }

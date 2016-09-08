@@ -30,6 +30,7 @@ func TestOptimus(t *testing.T) {
 	}
 
 	for i, tt := range encodeTests {
+		AssertPrime(tt.prime)
 		o := New(tt.prime, tt.mod, tt.rand)
 
 		enc := o.Encode(tt.input)
@@ -41,5 +42,33 @@ func TestOptimus(t *testing.T) {
 		if dec != tt.input {
 			t.Errorf("[%d] decode failed: expected %d, got %d", i, tt.input, dec)
 		}
+	}
+}
+
+func BenchmarkNew(b *testing.B) {
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		o := New(1580030173, 59260789, 1163945558)
+		_ = o
+	}
+}
+
+func BenchmarkNewWithAssert(b *testing.B) {
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		o := New(1580030173, 59260789, 1163945558)
+		AssertPrime(o.Prime())
+	}
+}
+
+func BenchmarkEncodeDecode(b *testing.B) {
+	o := New(1580030173, 59260789, 1163945558)
+	n := uint64(123456)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		e := o.Encode(n)
+		d := o.Decode(e)
+		_ = d
 	}
 }

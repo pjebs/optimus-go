@@ -9,8 +9,13 @@ import (
 )
 
 const (
-	MaxInt32          = 1<<31 - 1 // math.MaxInt32
-	MillerRabinRounds = 20        //https://golang.org/pkg/math/big/#Int.ProbablyPrime
+	// MaxInt32 represents the maximum 32-bit integer allowed within the hashing
+	// algorithm.
+	MaxInt32 = 1<<31 - 1 // math.MaxInt32
+
+	// MillerRabinRounds is the number of Miller-Rabin tests used to detect
+	// primes.  See https://golang.org/pkg/math/big/#Int.ProbablyPrime
+	MillerRabinRounds = 20
 )
 
 // Optimus represents the hashing implementation.
@@ -20,46 +25,50 @@ type Optimus struct {
 	random     uint64
 }
 
-// Returns an Optimus struct which can be used to encode and decode
+// New returns an Optimus struct which can be used to encode and decode
 // integers. Usually used for obfuscating internal ids such as database
-// table rows. Panics if prime is not valid.
+// table rows.
 func New(prime uint64, modInverse uint64, random uint64) Optimus {
-	p := big.NewInt(int64(prime))
-	if !p.ProbablyPrime(MillerRabinRounds) {
-		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MillerRabinRounds))
-		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("%d Miller-Rabin tests done. Accuracy: %f", MillerRabinRounds, accuracy)))
-	}
-
 	return Optimus{prime, modInverse, random}
 }
 
-// Encodes n using Knuth's Hashing Algorithm.
+// AssertPrime tests if a given number is prime.  If the test fails, a panic
+// occurs.
+func AssertPrime(n uint64) {
+	p := big.NewInt(int64(n))
+	if !p.ProbablyPrime(MillerRabinRounds) {
+		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MillerRabinRounds))
+		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("%d optimus.Miller-Rabin tests done. Accuracy: %f", MillerRabinRounds, accuracy)))
+	}
+}
+
+// Encode encodes n using Knuth's Hashing Algorithm.
 // Ensure that you store the prime, modInverse and random number
 // associated with the Optimus struct so that it can be decoded
 // correctly.
-func (this Optimus) Encode(n uint64) uint64 {
-	return ((n * this.prime) & MaxInt32) ^ this.random
+func (o Optimus) Encode(n uint64) uint64 {
+	return ((n * o.prime) & MaxInt32) ^ o.random
 }
 
-// Decodes a number that had been hashed already using Knuth's Hashing Algorithm.
+// Decode decodes a number that had been hashed already using Knuth's Hashing Algorithm.
 // It will only decode the number correctly if the prime, modInverse and random
 // number associated with the Optimus struct is consistent with when the number
 // was originally hashed.
-func (this Optimus) Decode(n uint64) uint64 {
-	return ((n ^ this.random) * this.modInverse) & MaxInt32
+func (o Optimus) Decode(n uint64) uint64 {
+	return ((n ^ o.random) * o.modInverse) & MaxInt32
 }
 
-// Returns the Associated Prime Number. DO NOT DEVULGE THIS NUMBER!
-func (this Optimus) Prime() uint64 {
-	return this.prime
+// Prime returns the Associated Prime Number. DO NOT DEVULGE THIS NUMBER!
+func (o Optimus) Prime() uint64 {
+	return o.prime
 }
 
-// Returns the Associated ModInverse Number. DO NOT DEVULGE THIS NUMBER!
-func (this Optimus) ModInverse() uint64 {
-	return this.modInverse
+// ModInverse returns the Associated ModInverse Number. DO NOT DEVULGE THIS NUMBER!
+func (o Optimus) ModInverse() uint64 {
+	return o.modInverse
 }
 
-// Returns the Associated Random Number. DO NOT DEVULGE THIS NUMBER!
-func (this Optimus) Random() uint64 {
-	return this.random
+// Random returns the Associated Random Number. DO NOT DEVULGE THIS NUMBER!
+func (o Optimus) Random() uint64 {
+	return o.random
 }

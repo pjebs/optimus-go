@@ -1,11 +1,12 @@
 // +build appengine
 
-package optimus
+package ogen
 
 import (
+	"net/http"
+
 	"appengine"
 	"appengine/urlfetch"
-	"net/http"
 )
 
 func client(r *http.Request) *http.Client {

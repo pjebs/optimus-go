@@ -1,6 +1,6 @@
 // +build !appengine
 
-package optimus
+package ogen
 
 import (
 	"net/http"

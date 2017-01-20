@@ -1,6 +1,4 @@
-// +build !appengine
-
-package optimus
+package generator
 
 import (
 	"archive/zip"
@@ -14,12 +12,24 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"testing"
 
 	"github.com/pjebs/jsonerror"
+	"github.com/pjebs/optimus-go"
 )
 
-func GenerateSeed() (*Optimus, uint8, error) {
+// Generates a valid Optimus struct using a randomly selected prime
+// number from this site: http://primes.utm.edu/lists/small/millions/
+// The first 50 million prime numbers are distributed evenly in 50 files.
+// Parameter req should be nil if not using Google App Engine.
+// This Function is Time, Memory and CPU intensive. Run it once to generate the
+// required seeds.
+// WARNING: Potentially Insecure. Double check that the prime number returned
+// is actually prime number using an independent source.
+// The largest Prime has 9 digits. The smallest has 1 digit.
+// The second return value is the website zip file identifier that was used to obtain the prime number
+func GenerateSeed(req *http.Request) (*optimus.Optimus, uint8, error) {
+	log.Printf("\x1b[31mWARNING: Optimus generates a random number via this site: http://primes.utm.edu/lists/small/millions/. This is potentially insecure!\x1b[39;49m")
+
 	baseURL := "http://primes.utm.edu/lists/small/millions/primes%d.zip"
 
 	//Generate Random number between 1-50
@@ -31,8 +41,7 @@ func GenerateSeed() (*Optimus, uint8, error) {
 	finalUrl := fmt.Sprintf(baseURL, i_n)
 	log.Printf("Using file: %s", finalUrl)
 
-	client := &http.Client{}
-	resp, err := client.Get(finalUrl)
+	resp, err := client(req).Get(finalUrl)
 	if err != nil {
 		return nil, uint8(i_n), jsonerror.New(1, "Could not generate seed", err.Error())
 	}
@@ -135,57 +144,13 @@ func GenerateSeed() (*Optimus, uint8, error) {
 	if selectedPrime != uint64(selectedPrime64) {
 		return nil, uint8(i_n), jsonerror.New(1, "Could not generate seed", "Prime number found by generator is too large to calculate the ModInverse. This is a limitation in math/big package. Try the generator again.")
 	}
-	modInverse := ModInverse(selectedPrime64)
+	modInverse := optimus.ModInverse(selectedPrime64)
 
 	//Generate Random Integer less than MAX_INT
-	upper := *big.NewInt(int64(MAX_INT - 2))
+	upper := *big.NewInt(int64(optimus.MAX_INT - 2))
 	rand, _ := rand.Int(rand.Reader, &upper)
 	randomNumber := rand.Uint64() + 1
 
-	o := New(selectedPrime, modInverse, randomNumber)
+	o := optimus.New(selectedPrime, modInverse, randomNumber)
 	return &o, uint8(i_n), nil
-}
-
-// Tests if the encoding process correctly decodes the id back to the original.
-func TestEncoding(t *testing.T) {
-	for i := 0; i < 5; i++ { //How many times we want to run GenerateSeed()
-		o, _, _ := GenerateSeed()
-
-		c := 10
-		h := 100 //How many random numbers to select in between 0-c and (MAX_INT-c) - MAX-INT
-
-		var y []uint64 //Stores all the values we want to run encoding tests on
-
-		for t := 0; t < c; t++ {
-			y = append(y, uint64(t))
-		}
-
-		//Generate Random numbers
-		for t := 0; t < h; t++ {
-			upper := *big.NewInt(int64(MAX_INT - 2*uint64(c)))
-			rand, _ := rand.Int(rand.Reader, &upper)
-			randomNumber := rand.Uint64() + uint64(c)
-
-			y = append(y, randomNumber)
-		}
-
-		for t := MAX_INT; t >= MAX_INT-uint64(c); t-- {
-			y = append(y, t)
-		}
-
-		t.Logf("Prime: %d ModInverse: %d Random: %d", o.Prime(), o.ModInverse(), o.Random())
-		for _, value := range y {
-			orig := value
-			hashed := o.Encode(value)
-			unhashed := o.Decode(hashed)
-
-			if orig != unhashed {
-				t.Errorf("%d: %d -> %d - FAILED", orig, hashed, unhashed)
-			} else {
-				t.Logf("%d: %d -> %d - PASSED", orig, hashed, unhashed)
-				// log.Printf("%d: %d -> %d - PASSED", orig, hashed, unhashed)
-			}
-		}
-
-	}
 }

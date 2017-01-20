@@ -103,22 +103,22 @@ It will only decode the number correctly if the prime, modInverse and random num
 func (this Optimus) Prime() uint64
 ```
 
-Returns the Associated Prime Number. **DO NOT DEVULGE THIS NUMBER!**
+Returns the Associated Prime Number. **DO NOT DIVULGE THIS NUMBER!**
 
 ```go
 func (this Optimus) ModInverse() uint64
 ```
 
-Returns the Associated ModInverse Number. **DO NOT DEVULGE THIS NUMBER!**
+Returns the Associated ModInverse Number. **DO NOT DIVULGE THIS NUMBER!**
 
 ```go
 func (this Optimus) Random() uint64
 ```
 
-Returns the Associated Random Number. **DO NOT DEVULGE THIS NUMBER!**
+Returns the Associated Random Number. **DO NOT DIVULGE THIS NUMBER!**
 
 ```go
-func ModInverse(n uint64) uint64
+func ModInverse(n int64) uint64
 ```
 
 Calculates the Modular Inverse of a given Prime number such that `(PRIME * MODULAR_INVERSE) & (MAX_INT_VALUE) = 1`
@@ -126,7 +126,7 @@ Panics if n is not a valid prime number.
 See: [http://en.wikipedia.org/wiki/Modular_multiplicative_inverse](http://en.wikipedia.org/wiki/Modular_multiplicative_inverse)
 
 ```go
-func GenerateSeed(req *http.Request) (*Optimus, error, uint8)
+func generator.GenerateSeed(req *http.Request) (*Optimus, uint8, error)
 ```
 
 Generates a valid Optimus struct using a randomly selected prime number from this site: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/)
@@ -134,7 +134,7 @@ The first 50 million prime numbers are distributed evenly in 50 files.
 This Function is Time, Memory and CPU intensive. Run it once to generate the required seeds.
 **WARNING:** Potentially Insecure. Double check that the prime number returned is actually prime number using an independent source.
 The largest Prime has 9 digits. The smallest has 1 digit.
-The final return value is the website zip file identifier that was used to obtain the prime number
+The second return value is the website zip file identifier that was used to obtain the prime number
 **NB:** Parameter `req` should be nil if not using Google App Engine.
 
 Alternatives
@@ -156,7 +156,7 @@ This package is based on the PHP library by [jenssegers](https://github.com/jens
 Final Notes
 ------------
 
-If you found this package useful, please **Star** it on github. Feel free to fork or provide pull requests. Any bug reports will be warmly received.
+If you found this package useful, please **Star** it on github. Feel free to fork and/or provide pull requests. Any bug reports will be warmly received.
 
 
 [PJ Engineering and Business Solutions Pty. Ltd.](http://www.pjebs.com.au)

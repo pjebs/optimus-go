@@ -1,4 +1,4 @@
-ID Obfuscation/Hashing Transformer for Go [![GoDoc](http://godoc.org/github.com/pjebs/optimus-go?status.svg)](http://godoc.org/github.com/pjebs/optimus-go)
+ID Obfuscation/Hashing Transformer for Go [![GoDoc](http://godoc.org/github.com/pjebs/optimus-go?status.svg)](http://godoc.org/github.com/pjebs/optimus-go) [![Go Report Card](https://goreportcard.com/badge/github.com/pjebs/optimus-go)](https://goreportcard.com/report/github.com/pjebs/optimus-go)
 ===============
 
 There are many times when you want to generate obfuscated ids. This package utilizes Knuth's Hashing Algorithm to transform your internal ids into another number to *hide* it from the general public.
@@ -138,7 +138,7 @@ an int64, then the function panics as it can not calculate the mod inverse.
 
 
 ```go
-func generator.GenerateSeed() (*Optimus, error)
+func generator.GenerateSeed() (Optimus, error)
 ```
 
 GenerateSeed will generate a valid optimus object which can be used for encoding and decoding values.

@@ -20,7 +20,7 @@ import (
 //
 // If this repo is too large, then use RandN(50) to select a file from http://primes.utm.edu/lists/small/millions/
 // and then Rand(1000000) to choose a line to extract a prime.
-func GenerateSeed() (*optimus.Optimus, error) {
+func GenerateSeed() (optimus.Optimus, error) {
 	n := RandN(50)
 	inputSource := fmt.Sprintf("./data/p%d.txt", n)
 	lineNum := int(RandN(1000000))
@@ -33,12 +33,12 @@ func GenerateSeed() (*optimus.Optimus, error) {
 
 	lineStr, err := realLine(f, lineNum)
 	if err != nil {
-		return nil, err
+		return optimus.Optimus{}, err
 	}
 
 	_selectedPrime, err := strconv.Atoi(lineStr)
 	if err != nil {
-		return nil, err
+		return optimus.Optimus{}, err
 	}
 	selectedPrime := uint64(_selectedPrime)
 	modInverse := optimus.ModInverse(selectedPrime)
@@ -46,7 +46,7 @@ func GenerateSeed() (*optimus.Optimus, error) {
 
 	o := optimus.New(selectedPrime, modInverse, uint64(random))
 
-	return &o, nil
+	return o, nil
 }
 
 func realLine(f io.Reader, lineNum int) (string, error) {
@@ -71,8 +71,8 @@ func realLine(f io.Reader, lineNum int) (string, error) {
 // RandN returns a cryptographically secure random number
 // in the range [1,N].
 func RandN(N int64) uint64 {
-	b_49 := *big.NewInt(N)
-	n, _ := rand.Int(rand.Reader, &b_49)
-	i_n := n.Uint64() + 1
-	return i_n
+	b49 := *big.NewInt(N)
+	n, _ := rand.Int(rand.Reader, &b49)
+	in := n.Uint64() + 1
+	return in
 }

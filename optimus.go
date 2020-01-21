@@ -47,11 +47,10 @@ func New(prime uint64, modInverse uint64, random uint64) Optimus {
 	p := big.NewInt(int64(prime))
 	if p.ProbablyPrime(MILLER_RABIN) {
 		return Optimus{prime, modInverse, random}
-	} else {
-		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
-		panic(fmt.Errorf("prime is not a valid prime. [Accuracy: %f]", accuracy))
 	}
 
+	accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
+	panic(fmt.Errorf("prime is not a valid prime. [Accuracy: %f]", accuracy))
 }
 
 // NewCalculated returns an Optimus struct that can be used to encode and decode integers.
@@ -64,43 +63,43 @@ func NewCalculated(prime uint64, random uint64) Optimus {
 // GenerateRandom generates a cryptographically secure random number.
 // As currently implemented, it will return a number in the int64 range.
 func GenerateRandom() uint64 {
-	b_49 := *big.NewInt(math.MaxInt64)
-	n, _ := rand.Int(rand.Reader, &b_49)
-	i_n := n.Uint64() + 1
+	b49 := *big.NewInt(math.MaxInt64)
+	n, _ := rand.Int(rand.Reader, &b49)
+	in := n.Uint64() + 1
 
-	return i_n
+	return in
 }
 
 // Encode is used to encode n using Knuth's hashing algorithm.
-func (this Optimus) Encode(n uint64) uint64 {
-	return ((n * this.prime) & MAX_INT) ^ this.random
+func (o Optimus) Encode(n uint64) uint64 {
+	return ((n * o.prime) & MAX_INT) ^ o.random
 }
 
 // Decode is used to decode n back to the original. It will only decode correctly if the Optimus struct
 // is consistent with what was used to encode n.
-func (this Optimus) Decode(n uint64) uint64 {
-	return ((n ^ this.random) * this.modInverse) & MAX_INT
+func (o Optimus) Decode(n uint64) uint64 {
+	return ((n ^ o.random) * o.modInverse) & MAX_INT
 }
 
 // Prime returns the associated prime.
 //
 // CAUTION: DO NOT DIVULGE THIS NUMBER!
-func (this Optimus) Prime() uint64 {
-	return this.prime
+func (o Optimus) Prime() uint64 {
+	return o.prime
 }
 
 // ModInverse returns the associated mod inverse.
 //
 // CAUTION: DO NOT DIVULGE THIS NUMBER!
-func (this Optimus) ModInverse() uint64 {
-	return this.modInverse
+func (o Optimus) ModInverse() uint64 {
+	return o.modInverse
 }
 
 // Random returns the associated random integer.
 //
 // CAUTION: DO NOT DIVULGE THIS NUMBER!
-func (this Optimus) Random() uint64 {
-	return this.random
+func (o Optimus) Random() uint64 {
+	return o.random
 }
 
 // ModInverse returns the modular inverse of a given prime number.

@@ -7,9 +7,6 @@ An example may be your database table. You may have a primary key that points to
 
 Optimus encodes your internal id to a number that is safe to expose. Finally it can decode that number back so you know which internal id it refers to.
 
-Full Unit Tests are provided.
-The package is Google App Engine compatible.
-
 
 Installation
 -------------
@@ -29,12 +26,7 @@ Usage
 * Calculate the Mod Inverse of the Prime number such that `(PRIME * INVERSE) & MAXID == 1`
 * Generate a Pure Random Integer less than `2147483647` (MAXID).
 
-You can use the built-in `GenerateSeed()` function to generate all 3 required parameters if you want. This is not recommended though because it is reliant on the prime numbers listed on the website: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/). This adds a point of insecurity.
-
-If you do use the `GenerateSeed()` function, make sure that you verify:
-* That website has not been hijacked
-* The 50 million prime numbers listed on the site have not been modified to all point to the same number (i.e. they are all different)
-* You independently verify that the Prime Number generated is in fact a **PRIME** number!
+You can use the built-in `generator.GenerateSeed()` function to generate all 3 required parameters if you want.
 
 
 ### Step 2
@@ -76,66 +68,84 @@ type Optimus struct {
 func New(prime uint64, modInverse uint64, random uint64) Optimus
 ```
 
-Returns an Optimus struct which can be used to encode and decode integers. Usually used for obfuscating internal ids such as database table rows. Panics if prime is not valid.
+New returns an Optimus struct that can be used to encode and decode integers.
+A common use case is for obfuscating internal ids of database primary keys.
+It is imperative that you keep a record of prime, modInverse and random so that
+you can decode an encoded integer correctly. random must be an integer less than MAX_INT.
+
+WARNING: The function panics if prime is not a valid prime. It does a probability-based
+prime test using the MILLER-RABIN algorithm.
+
+CAUTION: DO NOT DIVULGE prime, modInverse and random!
 
 
 ```go
 func NewCalculated(prime uint64, random uint64) Optimus
 ```
 
-Returns an Optimus struct which can be used to encode and decode integers. Usually used for obfuscating internal ids such as database table rows. This method calculates the modInverse computationally. Panics if prime is not valid.
+NewCalculated returns an Optimus struct that can be used to encode and decode integers.
+random must be an integer less than MAX_INT.
+It automatically calculates prime's mod inverse and then calls New.
+
 
 ```go
 func (this Optimus) Encode(n uint64) uint64 
 ```
 
-Encodes n using Knuth's Hashing Algorithm.
-Ensure that you store the prime, modInverse and random number associated with the Optimus struct so that it can be decoded correctly.
+Encode is used to encode n using Knuth's hashing algorithm.
 
 ```go
 func (this Optimus) Decode(n uint64) uint64
 ```
 
-Decodes a number that had been hashed already using Knuth's Hashing Algorithm.
-It will only decode the number correctly if the prime, modInverse and random number associated with the Optimus struct is consistent with when the number was originally hashed.
+Decode is used to decode n back to the original. It will only decode correctly if the Optimus struct is consistent with what what used to encode n.
 
 ```go
 func (this Optimus) Prime() uint64
 ```
 
-Returns the Associated Prime Number. **DO NOT DIVULGE THIS NUMBER!**
+Prime returns the associated prime.
+
+**CAUTION: DO NOT DIVULGE THIS NUMBER!**
 
 ```go
 func (this Optimus) ModInverse() uint64
 ```
 
-Returns the Associated ModInverse Number. **DO NOT DIVULGE THIS NUMBER!**
+ModInverse returns the associated mod inverse.
+
+**CAUTION: DO NOT DIVULGE THIS NUMBER!**
 
 ```go
 func (this Optimus) Random() uint64
 ```
 
-Returns the Associated Random Number. **DO NOT DIVULGE THIS NUMBER!**
+Random returns the associated random integer.
+
+**CAUTION: DO NOT DIVULGE THIS NUMBER!**
 
 ```go
 func ModInverse(n int64) uint64
 ```
 
-Calculates the Modular Inverse of a given Prime number such that `(PRIME * MODULAR_INVERSE) & (MAX_INT_VALUE) = 1`
-Panics if n is not a valid prime number.
-See: [http://en.wikipedia.org/wiki/Modular_multiplicative_inverse](http://en.wikipedia.org/wiki/Modular_multiplicative_inverse)
+
+ModInverse returns the modular inverse of a given prime number.
+The modular inverse is defined such that `(PRIME * MODULAR_INVERSE) & (MAX_INT_VALUE) = 1`.
+
+See: http://en.wikipedia.org/wiki/Modular_multiplicative_inverse
+
+NOTE: prime is assumed to be a valid prime. If prime is outside the bounds of
+an int64, then the function panics as it can not calculate the mod inverse.
+
+
 
 ```go
-func generator.GenerateSeed(req *http.Request) (*Optimus, uint8, error)
+func generator.GenerateSeed() (*Optimus, error)
 ```
 
-Generates a valid Optimus struct using a randomly selected prime number from this site: [http://primes.utm.edu/lists/small/millions/](http://primes.utm.edu/lists/small/millions/)
-The first 50 million prime numbers are distributed evenly in 50 files.
-This Function is Time, Memory and CPU intensive. Run it once to generate the required seeds.
-**WARNING:** Potentially Insecure. Double check that the prime number returned is actually prime number using an independent source.
-The largest Prime has 9 digits. The smallest has 1 digit.
-The second return value is the website zip file identifier that was used to obtain the prime number
-**NB:** Parameter `req` should be nil if not using Google App Engine.
+GenerateSeed will generate a valid optimus object which can be used for encoding and decoding values.
+
+See http://godoc.org/github.com/pjebs/optimus-go/generator#GenerateSeed for details on how to use it.
 
 Alternatives
 ------------

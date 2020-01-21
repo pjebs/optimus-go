@@ -1,33 +1,46 @@
 package optimus
 
 import (
+	"crypto/rand"
 	"fmt"
 	"math"
 	"math/big"
-
-	"github.com/pjebs/jsonerror"
 )
 
 var (
-	MAX_INT = uint64(math.MaxInt32) //2147483647
+	// MAX_INT represents the upper bound.
+	// It should be 2^N.
+	// It is set by default to the upper bound of an int32
+	// to interface with https://github.com/jenssegers/optimus
+	MAX_INT = uint64(math.MaxInt32) // 2,147,483,647
 )
 
 const (
-	MILLER_RABIN = 20 //https://golang.org/pkg/math/big/#Int.ProbablyPrime
+	// MILLER_RABIN is used to configure the ProbablyPrime function
+	// which is used to verify prime numbers.
+	//
+	// See: https://golang.org/pkg/math/big/#Int.ProbablyPrime
+	MILLER_RABIN = 20
 )
 
+// Optimus is used to encode and decode integers using Knuth's Hashing Algorithm.
 type Optimus struct {
 	prime      uint64
 	modInverse uint64
 	random     uint64
 }
 
-// Returns an Optimus struct which can be used to encode and decode
-// integers. Usually used for obfuscating internal ids such as database
-// table rows. Panics if prime is not valid.
-// Warning: `ProbablyPrime` test is only done if `prime` is within bounds of `int64`
+// New returns an Optimus struct that can be used to encode and decode integers.
+// A common use case is for obfuscating internal ids of database primary keys.
+// It is imperative that you keep a record of prime, modInverse and random so that
+// you can decode an encoded integer correctly. random must be an integer less than MAX_INT.
+//
+// WARNING: The function panics if prime is not a valid prime. It does a probability-based
+// prime test using the MILLER-RABIN algorithm.
+//
+// CAUTION: DO NOT DIVULGE prime, modInverse and random!
 func New(prime uint64, modInverse uint64, random uint64) Optimus {
-	if prime != uint64(int64(prime)) {
+	if prime > math.MaxInt64 {
 		return Optimus{prime, modInverse, random}
 	}
 
@@ -36,73 +49,74 @@ func New(prime uint64, modInverse uint64, random uint64) Optimus {
 		return Optimus{prime, modInverse, random}
 	} else {
 		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
-		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("n=%d. %d Miller-Rabin tests done. Accuracy: %f", prime, MILLER_RABIN, accuracy)))
+		panic(fmt.Errorf("prime is not a valid prime. [Accuracy: %f]", accuracy))
 	}
 
 }
 
-// Returns an Optimus struct which can be used to encode and decode
-// integers. Usually used for obfuscating internal ids such as database
-// table rows. This method calculates the modInverse computationally.
-// Panics if prime is not valid.
-// Warning: `ProbablyPrime` test is only done if `prime` is within bounds of `int64`
+// NewCalculated returns an Optimus struct that can be used to encode and decode integers.
+// random must be an integer less than MAX_INT.
+// It automatically calculates prime's mod inverse and then calls New.
 func NewCalculated(prime uint64, random uint64) Optimus {
-	prime64 := int64(prime)
-	if prime != uint64(prime64) {
-		return Optimus{prime, ModInverse(prime64), random}
-	}
-
-	p := big.NewInt(prime64)
-	if p.ProbablyPrime(MILLER_RABIN) {
-		return Optimus{prime, ModInverse(prime64), random}
-	} else {
-		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
-		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("n=%d. %d Miller-Rabin tests done. Accuracy: %f", prime, MILLER_RABIN, accuracy)))
-	}
+	return New(prime, ModInverse(prime), random)
 }
 
-// Encodes n using Knuth's Hashing Algorithm.
-// Ensure that you store the prime, modInverse and random number
-// associated with the Optimus struct so that it can be decoded
-// correctly.
+// GenerateRandom generates a cryptographically secure random number.
+// As curently implemented, it will return a number in the int64 range.
+func GenerateRandom() uint64 {
+	b_49 := *big.NewInt(math.MaxInt64)
+	n, _ := rand.Int(rand.Reader, &b_49)
+	i_n := n.Uint64() + 1
+
+	return i_n
+}
+
+// Encode is used to encode n using Knuth's hashing algorithm.
 func (this Optimus) Encode(n uint64) uint64 {
 	return ((n * this.prime) & MAX_INT) ^ this.random
 }
 
-// Decodes a number that had been hashed already using Knuth's Hashing Algorithm.
-// It will only decode the number correctly if the prime, modInverse and random
-// number associated with the Optimus struct is consistent with when the number
-// was originally hashed.
+// Decode is used to decode n back to the original. It will only decode correctly if the Optimus struct
+// is consistent with what what used to encode n.
 func (this Optimus) Decode(n uint64) uint64 {
 	return ((n ^ this.random) * this.modInverse) & MAX_INT
 }
 
-// Returns the Associated Prime Number. DO NOT DIVULGE THIS NUMBER!
+// Prime returns the associated prime.
+//
+// CAUTION: DO NOT DIVULGE THIS NUMBER!
 func (this Optimus) Prime() uint64 {
 	return this.prime
 }
 
-// Returns the Associated ModInverse Number. DO NOT DIVULGE THIS NUMBER!
+// ModInverse returns the associated mod inverse.
+//
+// CAUTION: DO NOT DIVULGE THIS NUMBER!
 func (this Optimus) ModInverse() uint64 {
 	return this.modInverse
 }
 
-// Returns the Associated Random Number. DO NOT DIVULGE THIS NUMBER!
+// Random returns the associated random integer.
+//
+// CAUTION: DO NOT DIVULGE THIS NUMBER!
 func (this Optimus) Random() uint64 {
 	return this.random
 }
 
-// Calculates the Modular Inverse of a given Prime number such that
-// (PRIME * MODULAR_INVERSE) & (MAX_INT_VALUE) = 1
-// Panics if `prime` is not a valid prime number.
+// ModInverse returns the modular inverse of a given prime number.
+// The modular inverse is defined such that
+// (PRIME * MODULAR_INVERSE) & (MAX_INT_VALUE) = 1.
+//
 // See: http://en.wikipedia.org/wiki/Modular_multiplicative_inverse
-func ModInverse(prime int64) uint64 {
-
-	p := big.NewInt(prime)
-	if !p.ProbablyPrime(MILLER_RABIN) {
-		accuracy := 1.0 - 1.0/math.Pow(float64(4), float64(MILLER_RABIN))
-		panic(jsonerror.New(2, "Number is not prime", fmt.Sprintf("n=%d. %d Miller-Rabin tests done. Accuracy: %f", prime, MILLER_RABIN, accuracy)))
+//
+// NOTE: prime is assumed to be a valid prime. If prime is outside the bounds of
+// an int64, then the function panics as it can not calculate the mod inverse.
+func ModInverse(prime uint64) uint64 {
+	if prime > math.MaxInt64 {
+		panic("prime exceeds max int64")
 	}
+
+	p := big.NewInt(int64(prime))
 
 	var i big.Int
 	max := big.NewInt(int64(MAX_INT + 1))

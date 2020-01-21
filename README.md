@@ -87,19 +87,19 @@ It automatically calculates prime's mod inverse and then calls New.
 
 
 ```go
-func (this Optimus) Encode(n uint64) uint64 
+func (o Optimus) Encode(n uint64) uint64 
 ```
 
 Encode is used to encode n using Knuth's hashing algorithm.
 
 ```go
-func (this Optimus) Decode(n uint64) uint64
+func (o Optimus) Decode(n uint64) uint64
 ```
 
 Decode is used to decode n back to the original. It will only decode correctly if the Optimus struct is consistent with what was used to encode n.
 
 ```go
-func (this Optimus) Prime() uint64
+func (o Optimus) Prime() uint64
 ```
 
 Prime returns the associated prime.
@@ -107,7 +107,7 @@ Prime returns the associated prime.
 **CAUTION: DO NOT DIVULGE THIS NUMBER!**
 
 ```go
-func (this Optimus) ModInverse() uint64
+func (o Optimus) ModInverse() uint64
 ```
 
 ModInverse returns the associated mod inverse.
@@ -115,7 +115,7 @@ ModInverse returns the associated mod inverse.
 **CAUTION: DO NOT DIVULGE THIS NUMBER!**
 
 ```go
-func (this Optimus) Random() uint64
+func (o Optimus) Random() uint64
 ```
 
 Random returns the associated random integer.

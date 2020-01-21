@@ -62,7 +62,7 @@ func NewCalculated(prime uint64, random uint64) Optimus {
 }
 
 // GenerateRandom generates a cryptographically secure random number.
-// As curently implemented, it will return a number in the int64 range.
+// As currently implemented, it will return a number in the int64 range.
 func GenerateRandom() uint64 {
 	b_49 := *big.NewInt(math.MaxInt64)
 	n, _ := rand.Int(rand.Reader, &b_49)
@@ -77,7 +77,7 @@ func (this Optimus) Encode(n uint64) uint64 {
 }
 
 // Decode is used to decode n back to the original. It will only decode correctly if the Optimus struct
-// is consistent with what what used to encode n.
+// is consistent with what was used to encode n.
 func (this Optimus) Decode(n uint64) uint64 {
 	return ((n ^ this.random) * this.modInverse) & MAX_INT
 }

@@ -19,7 +19,7 @@ import (
 // See: github.com/pjebs/optimus-go-primes (493+MB).
 //
 // If this repo is too large, then use RandN(50) to select a file from http://primes.utm.edu/lists/small/millions/
-// and then Rand(1000000) to select a random prime.
+// and then Rand(1000000) to choose a line to extract a prime.
 func GenerateSeed() (*optimus.Optimus, error) {
 	n := RandN(50)
 	inputSource := fmt.Sprintf("./data/p%d.txt", n)

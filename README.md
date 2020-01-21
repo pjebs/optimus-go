@@ -11,11 +11,9 @@ Optimus encodes your internal id to a number that is safe to expose. Finally it 
 Installation
 -------------
 
-
 ```shell
 go get -u github.com/pjebs/optimus-go
 ```
-
 
 Usage
 ------
@@ -70,13 +68,13 @@ func New(prime uint64, modInverse uint64, random uint64) Optimus
 
 New returns an Optimus struct that can be used to encode and decode integers.
 A common use case is for obfuscating internal ids of database primary keys.
-It is imperative that you keep a record of prime, modInverse and random so that
-you can decode an encoded integer correctly. random must be an integer less than MAX_INT.
+It is imperative that you keep a record of `prime`, `modInverse` and `random` so that
+you can decode an encoded integer correctly. `random` must be an integer less than `MAX_INT`.
 
 WARNING: The function panics if prime is not a valid prime. It does a probability-based
 prime test using the MILLER-RABIN algorithm.
 
-CAUTION: DO NOT DIVULGE prime, modInverse and random!
+**CAUTION: DO NOT DIVULGE prime, modInverse and random!**
 
 
 ```go
@@ -84,7 +82,7 @@ func NewCalculated(prime uint64, random uint64) Optimus
 ```
 
 NewCalculated returns an Optimus struct that can be used to encode and decode integers.
-random must be an integer less than MAX_INT.
+`random` must be an integer less than `MAX_INT`.
 It automatically calculates prime's mod inverse and then calls New.
 
 
@@ -98,7 +96,7 @@ Encode is used to encode n using Knuth's hashing algorithm.
 func (this Optimus) Decode(n uint64) uint64
 ```
 
-Decode is used to decode n back to the original. It will only decode correctly if the Optimus struct is consistent with what what used to encode n.
+Decode is used to decode n back to the original. It will only decode correctly if the Optimus struct is consistent with what was used to encode n.
 
 ```go
 func (this Optimus) Prime() uint64
@@ -168,5 +166,4 @@ Final Notes
 
 If you found this package useful, please **Star** it on github. Feel free to fork and/or provide pull requests. Any bug reports will be warmly received.
 
-
-[PJ Engineering and Business Solutions Pty. Ltd.](http://www.pjebs.com.au)
+© 2014-20 PJ Engineering and Business Solutions Pty. Ltd.

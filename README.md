@@ -166,4 +166,4 @@ Final Notes
 
 If you found this package useful, please **Star** it on github. Feel free to fork and/or provide pull requests. Any bug reports will be warmly received.
 
-© 2014-20 PJ Engineering and Business Solutions Pty. Ltd.
+**© 2014-20 PJ Engineering and Business Solutions Pty. Ltd.**

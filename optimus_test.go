@@ -15,6 +15,7 @@ func TestEncoding(t *testing.T) {
 		New(743534599, 1356791223, 1336232185),
 		New(54661037, 1342843941, 576322863),
 		New(198194831, 229517423, 459462336),
+		NewCalculated(198194831, 459462336),
 	}
 
 	for i := 0; i < 5; i++ { // How many times we want to run GenerateSeed()

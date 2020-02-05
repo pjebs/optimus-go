@@ -8,6 +8,8 @@ An example may be your database table. You may have a primary key that points to
 Optimus encodes your internal id to a number that is safe to expose. Finally it can decode that number back so you know which internal id it refers to.
 
 
+⭐ **the project to show your appreciation.**
+
 Installation
 -------------
 
@@ -161,9 +163,22 @@ Inspiration
 
 This package is based on the PHP library by [jenssegers](https://github.com/jenssegers/optimus).
 
+Other useful packages
+------------
+
+- [dataframe-go](https://github.com/rocketlaunchr/dataframe-go) - Statistics and data manipulation
+- [dbq](https://github.com/rocketlaunchr/dbq) - Zero boilerplate database operations for Go
+- [electron-alert](https://github.com/rocketlaunchr/electron-alert) - SweetAlert2 for Electron Applications
+- [igo](https://github.com/rocketlaunchr/igo) - A Go transpiler with cool new syntax such as fordefer (defer for for-loops)
+- [mysql-go](https://github.com/rocketlaunchr/mysql-go) - Properly cancel slow MySQL queries
+- [react](https://github.com/rocketlaunchr/react) - Build front end applications using Go
+- [remember-go](https://github.com/rocketlaunchr/remember-go) - Cache slow database queries
+
+
+
 Final Notes
 ------------
 
-If you found this package useful, please **Star** it on github. Feel free to fork and/or provide pull requests. Any bug reports will be warmly received.
+Feel free to fork and/or provide pull requests. Any bug reports will be warmly received.
 
 **© 2014-20 PJ Engineering and Business Solutions Pty. Ltd.**

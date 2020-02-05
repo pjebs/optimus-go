@@ -2,7 +2,6 @@ package optimus
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math/big"
 	"testing"
 )
@@ -20,8 +19,6 @@ func TestEncoding(t *testing.T) {
 
 	for i := 0; i < 5; i++ { // How many times we want to run GenerateSeed()
 		o := os[i]
-
-		fmt.Println("o", o)
 
 		c := 10
 		h := 100 // How many random numbers to select in between 0-c and (MAX_INT-c) - MAX-INT
@@ -57,5 +54,53 @@ func TestEncoding(t *testing.T) {
 			}
 		}
 
+	}
+}
+
+func TestGetMethods(t *testing.T) {
+
+	prime := uint64(309779747)
+	modInverse := uint64(49560203)
+	random := uint64(57733611)
+
+	o := New(prime, modInverse, random)
+
+	if o.Prime() != prime {
+		t.Errorf("get method Prime failed")
+	}
+
+	if o.ModInverse() != modInverse {
+		t.Errorf("get method modInverse failed")
+	}
+
+	if o.Random() != random {
+		t.Errorf("get method Random failed")
+	}
+
+}
+
+func TestModInverse(t *testing.T) {
+	prime := uint64(309779747)
+	expectedModInverse := uint64(49560203)
+
+	if expected := ModInverse(prime); expected != expectedModInverse {
+		t.Errorf("mod inverse incorrect. Expected=%d, Actual=%d", expectedModInverse, expected)
+	}
+}
+
+func TestGenerateRandom(t *testing.T) {
+
+	randoms := []uint64{}
+	vals := map[uint64]struct{}{}
+
+	for i := 1; i <= 500000; i++ {
+		r := GenerateRandom()
+		randoms = append(randoms, r)
+		vals[r] = struct{}{}
+	}
+
+	// Check if all the values are different
+	if len(randoms) != len(vals) {
+		t.Errorf("random number generation may not be correct")
 	}
 }
